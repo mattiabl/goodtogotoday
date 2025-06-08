@@ -1,78 +1,87 @@
-document.addEventListener("DOMContentLoaded", async () => {
-  const statusDiv = document.getElementById("status");
-  const quoteDiv = document.getElementById("quote");
-  const lang = navigator.language.slice(0, 2).toUpperCase();
+const statusDiv = document.getElementById("status");
+const quoteDiv = document.getElementById("quote");
 
-  const OPENWEATHERMAP_API_KEY = "b82135431da9a8f0199c0962ee487f4c";
-  const IQAIR_API_KEY = "60ba2ed9-a3d4-4966-be1d-2d447a70dbf3";
+// Display loading message
+statusDiv.innerText = "Checking conditions at your location...";
+
+navigator.geolocation.getCurrentPosition(async (position) => {
+  const lat = position.coords.latitude;
+  const lon = position.coords.longitude;
+
+  const OPENWEATHERMAP_API_KEY = "YOUR_OPENWEATHERMAP_API_KEY";
+  const IQAIR_API_KEY = "YOUR_IQAIR_API_KEY";
 
   try {
-    navigator.geolocation.getCurrentPosition(async (position) => {
-      const lat = position.coords.latitude;
-      const lon = position.coords.longitude;
+    const weatherResponse = await fetch(
+      `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${OPENWEATHERMAP_API_KEY}&units=metric`
+    );
+    const weatherData = await weatherResponse.json();
 
-      statusDiv.innerText = `Checking conditions at your location...`;
+    const aqiResponse = await fetch(
+      `https://api.airvisual.com/v2/nearest_city?lat=${lat}&lon=${lon}&key=${IQAIR_API_KEY}`
+    );
+    const aqiData = await aqiResponse.json();
+    const aqi = aqiData.data.current.pollution.aqius;
 
+    // Determine emojis based on weather and AQI
+    let emoji = "🌤";
+    if (weatherData.weather[0].main.includes("Rain")) {
+      emoji = "🌧";
+    } else if (weatherData.weather[0].main.includes("Snow")) {
+      emoji = "❄️";
+    } else if (weatherData.weather[0].main.includes("Clear")) {
+      emoji = "☀️";
+    } else if (weatherData.weather[0].main.includes("Cloud")) {
+      emoji = "☁️";
+    }
 
+    let aqiEmoji = "😷";
+    let aqiDescription = "Air quality unknown";
+    if (aqi <= 50) {
+      aqiEmoji = "😊";
+      aqiDescription = "Good air quality";
+    } else if (aqi <= 100) {
+      aqiEmoji = "😐";
+      aqiDescription = "Moderate air quality";
+    } else if (aqi <= 150) {
+      aqiEmoji = "😷";
+      aqiDescription = "Unhealthy for sensitive groups";
+    } else {
+      aqiEmoji = "🤢";
+      aqiDescription = "Unhealthy air quality";
+    }
 
-      let emoji = "🌤";
-      if (weatherData.weather[0].main.includes("Rain")) {
-        emoji = "🌧";
-      } else if (weatherData.weather[0].main.includes("Snow")) {
-        emoji = "❄️";
-      } else if (weatherData.weather[0].main.includes("Clear")) {
-        emoji = "☀️";
-      } else if (weatherData.weather[0].main.includes("Cloud")) {
-        emoji = "☁️";
-      }
+    statusDiv.innerText = `${emoji} ${weatherData.name}: ${weatherData.main.temp}°C\n${aqiEmoji} ${aqiDescription}`;
 
-      let aqiEmoji = "😷";
-      let aqiDescription = "Air quality unknown";
-      if (aqi <= 50) {
-        aqiEmoji = "😊";
-        aqiDescription = "Good air quality";
-      } else if (aqi <= 100) {
-        aqiEmoji = "😐";
-        aqiDescription = "Moderate air quality";
-      } else if (aqi <= 150) {
-        aqiEmoji = "😷";
-        aqiDescription = "Unhealthy for sensitive groups";
-      } else {
-        aqiEmoji = "🤢";
-        aqiDescription = "Unhealthy air quality";
-      }
-
-      statusDiv.innerText = `${emoji} ${weatherData.name}: ${weatherData.main.temp}°C\n${aqiEmoji} ${aqiDescription}`;
-
-
-      const weatherResp = await fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&appid=${OPENWEATHERMAP_API_KEY}`);
-      const weatherData = await weatherResp.json();
-      const temp = weatherData.main.temp;
-
-      const airResp = await fetch(`https://api.airvisual.com/v2/nearest_city?lat=${lat}&lon=${lon}&key=${IQAIR_API_KEY}`);
-      const airData = await airResp.json();
-      const pm25 = airData.data.current.pollution.pm25;
-
-      const safe = pm25 < 50 && temp >= 5 && temp <= 30;
-      statusDiv.innerText = safe ? "✅ You're good to go!" : "⚠️ Maybe stay inside today.";
-
-      const res = await fetch("quotes/quotes.json");
-      const quotes = await res.json();
-      const qlist = quotes[lang] || quotes["EN"];
-      const index = new Date().getDate() % qlist.length;
-      quoteDiv.innerText = qlist[index];
-    }, () => {
-      statusDiv.innerText = "❌ Location access denied.";
-    });
-  } catch (err) {
-    statusDiv.innerText = "❌ Could not load data.";
+  } catch (error) {
+    statusDiv.innerText = "❌ Failed to load weather or air quality data.";
+    console.error(error);
   }
 });
 
+// Load a rotating quote
+fetch("quotes/quotes.json")
+  .then(response => response.json())
+  .then(data => {
+    const lang = ["EN", "DE", "FR"].includes(navigator.language.slice(0, 2).toUpperCase())
+      ? navigator.language.slice(0, 2).toUpperCase()
+      : "EN";
+
+    const quotes = data[lang];
+    const day = new Date().getDate();
+    const quote = quotes[day % quotes.length];
+    quoteDiv.innerText = `“${quote}”`;
+  })
+  .catch(error => {
+    quoteDiv.innerText = "Could not load quote.";
+    console.error(error);
+  });
+
+// Service Worker registration
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js')
       .then(reg => console.log("✅ Service Worker registered"))
-      .catch(err => console.error("❌ Service Worker failed", err));
+      .catch(err => console.error("❌ SW error", err));
   });
 }
