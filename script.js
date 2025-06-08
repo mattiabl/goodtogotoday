@@ -13,6 +13,38 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       statusDiv.innerText = `Checking conditions at your location...`;
 
+
+
+      let emoji = "🌤";
+      if (weatherData.weather[0].main.includes("Rain")) {
+        emoji = "🌧";
+      } else if (weatherData.weather[0].main.includes("Snow")) {
+        emoji = "❄️";
+      } else if (weatherData.weather[0].main.includes("Clear")) {
+        emoji = "☀️";
+      } else if (weatherData.weather[0].main.includes("Cloud")) {
+        emoji = "☁️";
+      }
+
+      let aqiEmoji = "😷";
+      let aqiDescription = "Air quality unknown";
+      if (aqi <= 50) {
+        aqiEmoji = "😊";
+        aqiDescription = "Good air quality";
+      } else if (aqi <= 100) {
+        aqiEmoji = "😐";
+        aqiDescription = "Moderate air quality";
+      } else if (aqi <= 150) {
+        aqiEmoji = "😷";
+        aqiDescription = "Unhealthy for sensitive groups";
+      } else {
+        aqiEmoji = "🤢";
+        aqiDescription = "Unhealthy air quality";
+      }
+
+      statusDiv.innerText = `${emoji} ${weatherData.name}: ${weatherData.main.temp}°C\n${aqiEmoji} ${aqiDescription}`;
+
+
       const weatherResp = await fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&appid=${OPENWEATHERMAP_API_KEY}`);
       const weatherData = await weatherResp.json();
       const temp = weatherData.main.temp;
