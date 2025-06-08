@@ -8,8 +8,8 @@ navigator.geolocation.getCurrentPosition(async (position) => {
   const lat = position.coords.latitude;
   const lon = position.coords.longitude;
 
-  const OPENWEATHERMAP_API_KEY = "YOUR_OPENWEATHERMAP_API_KEY";
-  const IQAIR_API_KEY = "YOUR_IQAIR_API_KEY";
+  const OPENWEATHERMAP_API_KEY = "b82135431da9a8f0199c0962ee487f4c";
+  const IQAIR_API_KEY = "60ba2ed9-a3d4-4966-be1d-2d447a70dbf3";
 
   try {
     const weatherResponse = await fetch(
