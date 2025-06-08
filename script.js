@@ -3,8 +3,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   const quoteDiv = document.getElementById("quote");
   const lang = navigator.language.slice(0, 2).toUpperCase();
 
-  const OPENWEATHERMAP_API_KEY = "b82135431da9a8f0199c0962ee487f4c";
-  const IQAIR_API_KEY = "60ba2ed9-a3d4-4966-be1d-2d447a70dbf3";
+  const OPENWEATHERMAP_API_KEY = "YOUR_OPENWEATHERMAP_API_KEY";
+  const IQAIR_API_KEY = "YOUR_IQAIR_API_KEY";
 
   try {
     navigator.geolocation.getCurrentPosition(async (position) => {

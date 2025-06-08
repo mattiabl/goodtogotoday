@@ -1,0 +1,9 @@
+{
+  "name": "GoodToGo.Today",
+  "short_name": "GoodToGo",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f0f4f8",
+  "theme_color": "#317EFB",
+  "icons": []
+}
