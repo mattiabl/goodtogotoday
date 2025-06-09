@@ -1,0 +1,11 @@
+{
+  "builds": [
+    {
+      "src": "index.html",
+      "use": "@vercel/static"
+    }
+  ],
+  "hooks": {
+    "build": "sh setup-env.sh"
+  }
+}
