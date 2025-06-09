@@ -4,12 +4,30 @@ const quoteDiv = document.getElementById("quote");
 // Display loading message
 statusDiv.innerText = "Checking conditions at your location...";
 
+// Fetch API keys from server
+async function getApiKeys() {
+  try {
+    const response = await fetch('/api/config');
+    return await response.json();
+  } catch (error) {
+    console.error('Failed to fetch API keys:', error);
+    return null;
+  }
+}
+
 navigator.geolocation.getCurrentPosition(async (position) => {
   const lat = position.coords.latitude;
   const lon = position.coords.longitude;
 
-  const OPENWEATHERMAP_API_KEY = window.ENV.OPENWEATHERMAP_API_KEY;
-  const IQAIR_API_KEY = window.ENV.IQAIR_API_KEY;
+  // Get API keys from server
+  const apiKeys = await getApiKeys();
+  if (!apiKeys || !apiKeys.OPENWEATHERMAP_API_KEY || !apiKeys.IQAIR_API_KEY) {
+    statusDiv.innerText = "❌ API keys not configured properly.";
+    return;
+  }
+
+  const OPENWEATHERMAP_API_KEY = apiKeys.OPENWEATHERMAP_API_KEY;
+  const IQAIR_API_KEY = apiKeys.IQAIR_API_KEY;
 
   try {
     const weatherResponse = await fetch(
@@ -57,6 +75,9 @@ navigator.geolocation.getCurrentPosition(async (position) => {
     statusDiv.innerText = "❌ Failed to load weather or air quality data.";
     console.error(error);
   }
+}, (error) => {
+  statusDiv.innerText = "❌ Location access denied.";
+  console.error("Geolocation error:", error);
 });
 
 // Load a rotating quote
@@ -70,7 +91,7 @@ fetch("quotes/quotes.json")
     const quotes = data[lang];
     const day = new Date().getDate();
     const quote = quotes[day % quotes.length];
-    quoteDiv.innerText = `“${quote}”`;
+    quoteDiv.innerText = `"${quote}"`;
   })
   .catch(error => {
     quoteDiv.innerText = "Could not load quote.";
