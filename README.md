@@ -1,3 +1,5 @@
+![Preview](image.png)
+
 # GoodToGo.Today 🌤️
 
 A minimalist web app that instantly tells you if it's a good day to go outside based on your local weather and air quality conditions. Get real-time weather data, air quality index, and a daily motivational quote—all in one simple, clean interface.
